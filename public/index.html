@@ -1,1 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrandRank Resource Hub</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .brand-title {
+            font-size: 6rem;
+            font-weight: 900;
+            color: #3182ce;
+            text-align: center;
+            margin-bottom: 2px;
+            letter-spacing: 4px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .brand-subtitle {
+            font-size: 1.5rem;
+            color: #3182ce;
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 15px 25px;
+            font-size: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 50px;
+            background-color: #f7fafc;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #3182ce;
+        }
+
+        .search-input::placeholder {
+            color: #a0aec0;
+        }
+
+        .upload-button {
+            display: block;
+            margin: 20px auto;
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-button:hover {
+            background-color: #2c5282;
+            transform: translateY(-2px);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3182ce;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .view-all-button {
+            display: block;
+            margin: 20px auto;
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .view-all-button:hover {
+            background-color: #2c5282;
+            transform: translateY(-1px);
+        }
+
+        .back-to-main-button {
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .back-to-main-button:hover {
+            background-color: #2c5282;
+        }
+
+        .uploads-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .upload-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 25px;
+            background-color: #e6f3ff;
+            border: 2px solid #3182ce;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-item:hover {
+            background-color: #bee3f8;
+            transform: translateY(-2px);
+        }
+
+        .upload-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .upload-title {
+            font-size: 1.1rem;
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        .upload-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .upload-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tag-pill {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .upload-date {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .upload-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .view-button {
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .view-button:hover {
+            background-color: #2c5282;
+        }
+
+        .delete-button {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-button:hover {
+            background-color: #fee2e2;
+        }
+
+        .uploads-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .upload-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+        }
+
+        .upload-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            border-color: #3182ce;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1a365d;
+            margin-bottom: 10px;
+            flex: 1;
+        }
+
+        .card-delete {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .card-delete:hover {
+            background-color: #fee2e2;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        .card-tag {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .card-date {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .card-view-btn {
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .card-view-btn:hover {
+            background-color: #2c5282;
+        }
+
+        .all-uploads-page {
+            display: none;
+        }
+
+        .all-uploads-page.active {
+            display: block;
+        }
+
+        .empty-state, .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .no-results.hidden, .empty-state.hidden {
+            display: none;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #dc2626;
+            font-size: 1.1rem;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: #3182ce;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1a365d;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3182ce;
+        }
+
+        .tag-input-container {
+            position: relative;
+        }
+
+        .tag-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+        }
+
+        .tag-dropdown.active {
+            display: block;
+        }
+
+        .tag-suggestion {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.2s ease;
+        }
+
+        .tag-suggestion:hover {
+            background-color: #f0f9ff;
+        }
+
+        .tag-suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .selected-tag {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .remove-tag {
+            background: none;
+            border: none;
+            color: #1e40af;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .btn-cancel {
+            background-color: #e2e8f0;
+            color: #64748b;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-submit {
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-submit:hover {
+            background-color: #2c5282;
+        }
+
+        .btn-submit:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        /* File Viewer Styles */
+        .file-viewer-page {
+            display: none;
+        }
+
+        .file-viewer-page.active {
+            display: block;
+        }
+
+        .back-button {
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .back-button:hover {
+            background-color: #2c5282;
+        }
+
+        .file-info {
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .file-content-container {
+            background-color: white;
+            border-radius: 15px;
+            border: 2px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .file-content-header {
+            background-color: #3182ce;
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+        }
+
+        .file-iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+
+            .brand-title {
+                font-size: 3rem;
+                letter-spacing: 2px;
+            }
+
+            .brand-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .upload-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .upload-actions {
+                align-self: flex-end;
+            }
+
+            .modal-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Main Page -->
+        <div id="mainPage">
+            <h2 class="brand-title">BRANDRANK</h2>
+            <h3 class="brand-subtitle">Resource Hub</h3>
+            
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by name or tags..." oninput="filterFiles()">
+            </div>
+
+            <button class="upload-button" onclick="showUploadModal()">Upload New Resource</button>
+            
+            <h4 class="section-title">LATEST UPLOADS:</h4>
+            
+            <!-- Files Container -->
+            <div id="loadingState" class="loading-state">
+                Loading resources...
+            </div>
+
+            <div id="errorState" class="error-state hidden">
+                Failed to load resources. <button onclick="loadFiles()" class="upload-button" style="margin: 10px;">Retry</button>
+            </div>
+
+            <div id="emptyState" class="empty-state hidden">
+                <div>No resources uploaded yet</div>
+                <button class="upload-button" onclick="showUploadModal()" style="margin-top: 20px;">Upload your first resource</button>
+            </div>
+
+            <div id="noResults" class="no-results hidden">
+                No resources match your search criteria
+            </div>
+            
+            <div id="uploadsList" class="uploads-list"></div>
+            
+            <button id="viewAllButton" class="view-all-button hidden" onclick="showAllUploadsPage()">View All</button>
+        </div>
+
+        <!-- All Uploads Page -->
+        <div id="allUploadsPage" class="all-uploads-page">
+            <button class="back-to-main-button" onclick="showMainPage()">← Back to Home</button>
+            
+            <h2 class="brand-title" style="font-size: 4rem; margin-bottom: 2px;">BRANDRANK</h2>
+            <h3 class="brand-subtitle" style="margin-bottom: 30px;">Resource Hub</h3>
+            
+            <div class="search-container">
+                <input type="text" id="allSearchInput" class="search-input" placeholder="Search by name or tags..." oninput="filterAllFiles()">
+            </div>
+            
+            <h4 class="section-title">ALL UPLOADS:</h4>
+            
+            <div id="allEmptyState" class="empty-state hidden">
+                <div>No resources uploaded yet</div>
+            </div>
+
+            <div id="allNoResults" class="no-results hidden">
+                No resources match your search criteria
+            </div>
+            
+            <div id="allUploadsGrid" class="uploads-grid"></div>
+        </div>
+
+        <!-- File Viewer Page -->
+        <div id="fileViewerPage" class="file-viewer-page">
+            <button id="backButton" class="back-button" onclick="goBack()">← Back</button>
+            
+            <div class="file-info">
+                <h2 id="fileTitle" style="color: #3182ce; margin-bottom: 15px; font-size: 1.5rem;"></h2>
+                <div id="fileTags" style="margin-bottom: 10px;"></div>
+                <div id="fileDate" class="upload-date"></div>
+            </div>
+
+            <div class="file-content-container">
+                <div class="file-content-header">RESOURCE CONTENT</div>
+                <iframe id="fileContent" class="file-iframe"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">UPLOAD RESOURCE</h2>
+            
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label class="form-label">Resource Title *</label>
+                    <input type="text" id="titleInput" class="form-input" placeholder="Enter resource title..." required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tags</label>
+                    <div class="tag-input-container">
+                        <input type="text" id="tagsInput" class="form-input" placeholder="Type to add tags..." oninput="handleTagInput()" onfocus="showTagDropdown()">
+                        <div id="tagDropdown" class="tag-dropdown">
+                            <div id="tagSuggestions"></div>
+                        </div>
+                    </div>
+                    <div id="selectedTags" class="selected-tags"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">HTML File *</label>
+                    <input type="file" id="fileInput" class="form-input" accept=".html,.htm" required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="hideUploadModal()">Cancel</button>
+                    <button type="submit" id="submitBtn" class="btn-submit">Upload Resource</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let files = [];
+        let filteredFiles = [];
+        let selectedTags = [];
+        let allTags = [];
+        let selectedUploadTags = [];
+        let currentPage = 'main';
+        let isLoading = false;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFiles();
+            
+            // Setup upload form
+            document.getElementById('uploadForm').addEventListener('submit', handleUpload);
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#tagsInput') && !e.target.closest('#tagDropdown')) {
+                    hideTagDropdown();
+                }
+            });
+
+            // Handle Enter key in tag input
+            document.getElementById('tagsInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTagFromInput();
+                }
+            });
+
+            // Close modal when clicking outside
+            document.getElementById('uploadModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideUploadModal();
+                }
+            });
+        });
+
+        // API Functions
+        async function apiRequest(endpoint, options = {}) {
+            try {
+                const response = await fetch(endpoint, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('API request failed:', error);
+                throw error;
+            }
+        }
+
+        // Load files from database
+        async function loadFiles() {
+            if (isLoading) return;
+            isLoading = true;
+
+            try {
+                showLoadingState();
+                const data = await apiRequest('/api/files');
+                files = data;
+                updateTags();
+                filterFiles();
+                hideLoadingState();
+            } catch (error) {
+                console.error('Error loading files:', error);
+                showErrorState();
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // Upload file to database
+        async function handleUpload(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.textContent;
+            
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Uploading...';
+
+                const title = document.getElementById('titleInput').value.trim();
+                const fileInput = document.getElementById('fileInput');
+                const file = fileInput.files[0];
+                
+                if (!file || !title) {
+                    alert('Please provide both a title and select an HTML file');
+                    return;
+                }
+
+                const content = await readFileContent(file);
+                
+                // Basic HTML validation
+                if (!content.toLowerCase().includes('<html') && !content.toLowerCase().includes('<!doctype')) {
+                    alert('Please upload a valid HTML file');
+                    return;
+                }
+
+                await apiRequest('/api/upload', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        title: title,
+                        tags: selectedUploadTags,
+                        content: content,
+                        originalName: file.name,
+                        size: file.size
+                    })
+                });
+
+                // Reload files from database
+                await loadFiles();
+                renderFiles();
+                renderAllFiles();
+                hideUploadModal();
+                
+                // Reset form
+                document.getElementById('uploadForm').reset();
+                selectedUploadTags = [];
+                updateSelectedTags();
+                
+                alert('Resource uploaded successfully!');
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Failed to upload resource: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+
+        // Delete file from database
+        async function deleteFile(fileId) {
+            if (!confirm('Are you sure you want to delete this resource?')) {
+                return;
+            }
+
+            try {
+                await apiRequest(`/api/delete?id=${fileId}`, {
+                    method: 'DELETE'
+                });
+                
+                // Reload files from database
+                await loadFiles();
+                renderFiles();
+                renderAllFiles();
+            } catch (error) {
+                console.error('Error deleting file:', error);
+                alert('Failed to delete file: ' + error.message);
+            }
+        }
+
+        // UI State Management
+        function showLoadingState() {
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('noResults').classList.add('hidden');
+            document.getElementById('uploadsList').innerHTML = '';
+            document.getElementById('viewAllButton').classList.add('hidden');
+        }
+
+        function showErrorState() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('noResults').classList.add('hidden');
+            document.getElementById('uploadsList').innerHTML = '';
+            document.getElementById('viewAllButton').classList.add('hidden');
+        }
+
+        function hideLoadingState() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+        }
+
+        // Read file content
+        function readFileContent(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        // Generate unique ID (fallback)
+        function generateId() {
+            return 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Tag management for upload
+        function handleTagInput() {
+            const input = document.getElementById('tagsInput');
+            const value = input.value.toLowerCase();
+            
+            if (value.trim()) {
+                showTagSuggestions(value);
+            } else {
+                hideTagDropdown();
+            }
+        }
+
+        function showTagSuggestions(filter = '') {
+            const dropdown = document.getElementById('tagDropdown');
+            const suggestions = document.getElementById('tagSuggestions');
+            
+            const matching = allTags.filter(tag => 
+                tag.toLowerCase().includes(filter.toLowerCase()) && 
+                !selectedUploadTags.includes(tag)
+            );
+            
+            suggestions.innerHTML = '';
+            
+            matching.forEach(tag => {
+                const div = document.createElement('div');
+                div.className = 'tag-suggestion';
+                div.textContent = tag;
+                div.onclick = () => addTag(tag);
+                suggestions.appendChild(div);
+            });
+            
+            const input = document.getElementById('tagsInput').value.trim();
+            if (input && !allTags.includes(input) && !selectedUploadTags.includes(input)) {
+                const div = document.createElement('div');
+                div.className = 'tag-suggestion';
+                div.style.fontWeight = 'bold';
+                div.innerHTML = `Create: "${input}"`;
+                div.onclick = () => addTag(input);
+                suggestions.appendChild(div);
+            }
+            
+            dropdown.classList.add('active');
+        }
+
+        function showTagDropdown() {
+            showTagSuggestions();
+        }
+
+        function hideTagDropdown() {
+            document.getElementById('tagDropdown').classList.remove('active');
+        }
+
+        function addTagFromInput() {
+            const input = document.getElementById('tagsInput');
+            const value = input.value.trim();
+            if (value) {
+                addTag(value);
+            }
+        }
+
+        function addTag(tag) {
+            if (!selectedUploadTags.includes(tag)) {
+                selectedUploadTags.push(tag);
+                updateSelectedTags();
+            }
+            document.getElementById('tagsInput').value = '';
+            hideTagDropdown();
+        }
+
+        function removeUploadTag(tag) {
+            selectedUploadTags = selectedUploadTags.filter(t => t !== tag);
+            updateSelectedTags();
+        }
+
+        function updateSelectedTags() {
+            const container = document.getElementById('selectedTags');
+            container.innerHTML = '';
+            
+            selectedUploadTags.forEach(tag => {
+                const span = document.createElement('span');
+                span.className = 'selected-tag';
+                span.innerHTML = `
+                    ${escapeHtml(tag)}
+                    <button class="remove-tag" onclick="removeUploadTag('${escapeHtml(tag)}')">×</button>
+                `;
+                container.appendChild(span);
+            });
+        }
+
+        // Update tags list
+        function updateTags() {
+            allTags = [...new Set(files.flatMap(file => file.tags || []))];
+        }
+
+        // Filter files
+        function filterFiles() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredFiles = files.filter(file => {
+                const matchesSearch = !searchTerm || 
+                    file.title.toLowerCase().includes(searchTerm) ||
+                    (file.tags || []).some(tag => tag.toLowerCase().includes(searchTerm));
+                
+                return matchesSearch;
+            });
+            
+            renderFiles();
+        }
+
+        // Filter files for all uploads page
+        function filterAllFiles() {
+            const searchTerm = document.getElementById('allSearchInput').value.toLowerCase();
+            
+            filteredFiles = files.filter(file => {
+                const matchesSearch = !searchTerm || 
+                    file.title.toLowerCase().includes(searchTerm) ||
+                    (file.tags || []).some(tag => tag.toLowerCase().includes(searchTerm));
+                
+                return matchesSearch;
+            });
+            
+            renderAllFiles();
+        }
+
+        // Render files
+        function renderFiles() {
+            const emptyState = document.getElementById('emptyState');
+            const uploadsList = document.getElementById('uploadsList');
+            const noResults = document.getElementById('noResults');
+            const viewAllButton = document.getElementById('viewAllButton');
+            
+            if (isLoading) return;
+            
+            // Hide all states
+            emptyState.classList.add('hidden');
+            uploadsList.innerHTML = '';
+            noResults.classList.add('hidden');
+            viewAllButton.classList.add('hidden');
+            
+            if (files.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            if (filteredFiles.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
+            }
+            
+            // Show only first 5 files on main page
+            const displayFiles = filteredFiles.slice(0, 5);
+            displayFiles.forEach(file => {
+                const item = createFileItem(file);
+                uploadsList.appendChild(item);
+            });
+            
+            // Show "View All" button if there are more than 5 files
+            if (files.length > 5) {
+                viewAllButton.classList.remove('hidden');
+            }
+        }
+
+        // Render all files for the all uploads page
+        function renderAllFiles() {
+            const allEmptyState = document.getElementById('allEmptyState');
+            const allUploadsGrid = document.getElementById('allUploadsGrid');
+            const allNoResults = document.getElementById('allNoResults');
+            
+            // Hide all states
+            allEmptyState.classList.add('hidden');
+            allUploadsGrid.innerHTML = '';
+            allNoResults.classList.add('hidden');
+            
+            if (files.length === 0) {
+                allEmptyState.classList.remove('hidden');
+                return;
+            }
+            
+            if (filteredFiles.length === 0) {
+                allNoResults.classList.remove('hidden');
+                return;
+            }
+            
+            filteredFiles.forEach(file => {
+                const card = createFileCard(file);
+                allUploadsGrid.appendChild(card);
+            });
+        }
+
+        // Create file item for list view
+        function createFileItem(file) {
+            const item = document.createElement('div');
+            item.className = 'upload-item';
+            
+            const uploadDate = file.uploadDate ? new Date(file.uploadDate).toLocaleDateString() : 'Unknown';
+            
+            item.innerHTML = `
+                <div class="upload-content">
+                    <div class="upload-title">${escapeHtml(file.title)}</div>
+                    <div class="upload-meta">
+                        <div class="upload-tags">
+                            ${(file.tags || []).map(tag => 
+                                `<span class="tag-pill">${escapeHtml(tag)}</span>`
+                            ).join('')}
+                        </div>
+                        <div class="upload-date">${uploadDate}</div>
+                    </div>
+                </div>
+                <div class="upload-actions">
+                    <button class="delete-button" onclick="deleteFile('${file.id}')" title="Delete resource">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                        </svg>
+                    </button>
+                    <button class="view-button" onclick="viewFile('${file.id}')">VIEW</button>
+                </div>
+            `;
+            
+            return item;
+        }
+
+        // Create file card for grid view
+        function createFileCard(file) {
+            const card = document.createElement('div');
+            card.className = 'upload-card';
+            
+            const uploadDate = file.uploadDate ? new Date(file.uploadDate).toLocaleDateString() : 'Unknown';
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-title">${escapeHtml(file.title)}</div>
+                    <button class="card-delete" onclick="deleteFile('${file.id}')" title="Delete resource">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="card-tags">
+                    ${(file.tags || []).map(tag => 
+                        `<span class="card-tag">${escapeHtml(tag)}</span>`
+                    ).join('')}
+                </div>
+                
+                <div class="card-footer">
+                    <div class="card-date">${uploadDate}</div>
+                    <button class="card-view-btn" onclick="viewFile('${file.id}')">VIEW</button>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // View file
+        function viewFile(fileId) {
+            const file = files.find(f => f.id == fileId);
+            if (!file) return;
+            
+            // Update file viewer
+            document.getElementById('fileTitle').textContent = file.title;
+            document.getElementById('fileDate').textContent = 
+                `Uploaded: ${file.uploadDate ? new Date(file.uploadDate).toLocaleDateString() : 'Unknown'}`;
+            
+            // Render tags
+            const tagsContainer = document.getElementById('fileTags');
+            tagsContainer.innerHTML = (file.tags || []).map(tag => 
+                `<span class="tag-pill">${escapeHtml(tag)}</span>`
+            ).join('');
+            
+            // Load content in iframe
+            const iframe = document.getElementById('fileContent');
+            if (typeof Blob !== 'undefined') {
+                const blob = new Blob([file.content], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                iframe.src = url;
+            } else {
+                iframe.srcdoc = file.content;
+            }
+            
+            // Show file viewer page
+            showFileViewerPage();
+        }
+
+        // Go back to previous page
+        function goBack() {
+            if (currentPage === 'all') {
+                showAllUploadsPage();
+            } else {
+                showMainPage();
+            }
+        }
+
+        // Navigation functions
+        function showMainPage() {
+            currentPage = 'main';
+            document.getElementById('mainPage').style.display = 'block';
+            document.getElementById('allUploadsPage').classList.remove('active');
+            document.getElementById('fileViewerPage').classList.remove('active');
+        }
+
+        function showAllUploadsPage() {
+            currentPage = 'all';
+            document.getElementById('mainPage').style.display = 'none';
+            document.getElementById('allUploadsPage').classList.add('active');
+            document.getElementById('fileViewerPage').classList.remove('active');
+            
+            // Initialize the all uploads page
+            filteredFiles = [...files];
+            renderAllFiles();
+        }
+
+        function showFileViewerPage() {
+            document.getElementById('mainPage').style.display = 'none';
+            document.getElementById('allUploadsPage').classList.remove('active');
+            document.getElementById('fileViewerPage').classList.add('active');
+        }
+
+        function showUploadModal() {
+            document.getElementById('uploadModal').classList.add('active');
+            selectedUploadTags = [];
+            updateSelectedTags();
+        }
+
+        function hideUploadModal() {
+            document.getElementById('uploadModal').classList.remove('active');
+            hideTagDropdown();
+        }
+    </script>
+</body>
+</html>
