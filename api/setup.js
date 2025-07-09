@@ -2,7 +2,11 @@ import { sql } from '@vercel/postgres';
 
 export default async function handler(request, response) {
   try {
-    await sql`
+    // First check if we can import the SQL function
+    const { sql } = await import('@vercel/postgres');
+    
+    // Try to create the table
+    const result = await sql`
       CREATE TABLE IF NOT EXISTS files (
         id SERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
@@ -14,8 +18,16 @@ export default async function handler(request, response) {
       )
     `;
     
-    return response.status(200).json({ message: 'Database table created successfully!' });
+    return response.status(200).json({ 
+      message: 'Database table created successfully!',
+      result: result 
+    });
   } catch (error) {
-    return response.status(500).json({ error: error.message });
+    console.error('Setup error:', error);
+    return response.status(500).json({ 
+      error: error.message,
+      stack: error.stack,
+      name: error.name
+    });
   }
 }
