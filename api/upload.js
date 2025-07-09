@@ -1,18 +1,12 @@
 // /api/upload.js
 
-let sql;
-try {
-  sql = (await import('@vercel/postgres')).sql;
-} catch (e) {
-  console.error('Failed to import @vercel/postgres:', e);
-}
-
-import { IncomingForm } from 'formidable';
-import fs from 'fs/promises';
+const { sql } = require('@vercel/postgres');
+const { IncomingForm } = require('formidable');
+const fs = require('fs/promises');
 
 export const config = {
   api: {
-    bodyParser: false, // Required for formidable
+    bodyParser: false,
   },
 };
 
