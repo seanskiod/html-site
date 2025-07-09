@@ -1,3 +1,5 @@
+// /api/upload.js
+
 let sql;
 try {
   sql = (await import('@vercel/postgres')).sql;
@@ -10,7 +12,7 @@ import fs from 'fs/promises';
 
 export const config = {
   api: {
-    bodyParser: false, // Required for formidable to parse multipart/form-data
+    bodyParser: false, // Required for formidable
   },
 };
 
@@ -20,7 +22,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const form = new IncomingForm();
+    const form = new IncomingForm({ multiples: false });
 
     form.parse(req, async (err, fields, files) => {
       if (err) {
@@ -28,9 +30,9 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Form parsing failed' });
       }
 
-      const title = fields.title?.[0] || 'Untitled';
-      const tags = fields.tags?.[0] ? JSON.parse(fields.tags[0]) : [];
-      const file = files.file?.[0];
+      const title = fields.title || 'Untitled';
+      const tags = fields.tags ? JSON.parse(fields.tags) : [];
+      const file = files.file;
 
       if (!file) {
         return res.status(400).json({ error: 'No file uploaded' });
@@ -41,11 +43,11 @@ export default async function handler(req, res) {
       const { rows } = await sql`
         INSERT INTO files (title, tags, content, original_name, size, upload_date)
         VALUES (
-          ${title}, 
-          ${JSON.stringify(tags)}, 
-          ${fileContent}, 
-          ${file.originalFilename}, 
-          ${file.size}, 
+          ${title},
+          ${JSON.stringify(tags)},
+          ${fileContent},
+          ${file.originalFilename},
+          ${file.size},
           NOW()
         )
         RETURNING *
