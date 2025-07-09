@@ -1,20 +1,47 @@
 import { sql } from '@vercel/postgres';
+import formidable from 'formidable';
+import fs from 'fs/promises';
 
-export default async function handler(request, response) {
-  if (request.method === 'POST') {
-    try {
-      const { title, tags, content, originalName, size } = request.body;
+export const config = {
+  api: {
+    bodyParser: false, // Required for formidable to parse multipart/form-data
+  },
+};
 
-      // Validate input
-      if (!title || !content || !originalName || !size) {
-        return response.status(400).json({ error: 'Missing required fields' });
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const form = new formidable.IncomingForm();
+
+    form.parse(req, async (err, fields, files) => {
+      if (err) {
+        console.error('Form parse error:', err);
+        return res.status(500).json({ error: 'Form parsing failed' });
       }
 
-      const tagsJson = Array.isArray(tags) ? JSON.stringify(tags) : '[]';
+      const title = fields.title?.[0] || 'Untitled';
+      const tags = fields.tags?.[0] ? JSON.parse(fields.tags[0]) : [];
+      const file = files.file?.[0];
+
+      if (!file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const fileContent = await fs.readFile(file.filepath, 'utf-8');
 
       const { rows } = await sql`
         INSERT INTO files (title, tags, content, original_name, size, upload_date)
-        VALUES (${title}, ${tagsJson}::jsonb, ${content}, ${originalName}, ${size}, NOW())
+        VALUES (
+          ${title}, 
+          ${JSON.stringify(tags)}, 
+          ${fileContent}, 
+          ${file.originalFilename}, 
+          ${file.size}, 
+          NOW()
+        )
         RETURNING *
       `;
 
@@ -28,17 +55,10 @@ export default async function handler(request, response) {
         uploadDate: rows[0].upload_date
       };
 
-      return response.status(200).json(newFile);
-
-    } catch (error) {
-      console.error('Upload API error:', error);
-      return response.status(500).json({ 
-        error: 'Failed to upload file',
-        message: error.message,
-        stack: error.stack
-      });
-    }
+      return res.status(200).json(newFile);
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    return res.status(500).json({ error: 'Failed to upload file' });
   }
-
-  return response.status(405).json({ error: 'Method not allowed' });
 }
