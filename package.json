@@ -1,0 +1,15 @@
+{
+  "name": "brandrank-resource-hub",
+  "version": "1.0.0",
+  "description": "HTML file sharing platform",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'No build step required'"
+  },
+  "dependencies": {
+    "@vercel/postgres": "^0.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
