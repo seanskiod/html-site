@@ -1,8 +1,6 @@
-// /api/upload.js
-
-const { sql } = require('@vercel/postgres');
-const { IncomingForm } = require('formidable');
-const fs = require('fs/promises');
+import { sql } from '@vercel/postgres';
+import formidable from 'formidable';
+import fs from 'fs/promises';
 
 export const config = {
   api: {
@@ -15,18 +13,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  try {
-    const form = new IncomingForm({ multiples: false });
+  const form = formidable();
 
-    form.parse(req, async (err, fields, files) => {
-      if (err) {
-        console.error('Form parse error:', err);
-        return res.status(500).json({ error: 'Form parsing failed' });
-      }
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error('Form parse error:', err);
+      return res.status(500).json({ error: 'Form parsing failed' });
+    }
 
-      const title = fields.title || 'Untitled';
-      const tags = fields.tags ? JSON.parse(fields.tags) : [];
-      const file = files.file;
+    try {
+      const title = fields.title?.[0] || 'Untitled';
+      const tags = fields.tags?.[0] ? JSON.parse(fields.tags[0]) : [];
+      const file = files.file?.[0];
 
       if (!file) {
         return res.status(400).json({ error: 'No file uploaded' });
@@ -54,13 +52,13 @@ export default async function handler(req, res) {
         content: rows[0].content,
         originalName: rows[0].original_name,
         size: rows[0].size,
-        uploadDate: rows[0].upload_date
+        uploadDate: rows[0].upload_date,
       };
 
       return res.status(200).json(newFile);
-    });
-  } catch (error) {
-    console.error('Upload error:', error);
-    return res.status(500).json({ error: 'Failed to upload file' });
-  }
+    } catch (error) {
+      console.error('Upload error:', error);
+      return res.status(500).json({ error: 'Failed to upload file' });
+    }
+  });
 }
