@@ -1,6 +1,3 @@
-import formidable from 'formidable';
-import fs from 'fs/promises';
-
 let sql;
 try {
   sql = (await import('@vercel/postgres')).sql;
@@ -8,9 +5,12 @@ try {
   console.error('Failed to import @vercel/postgres:', e);
 }
 
+import { IncomingForm } from 'formidable';
+import fs from 'fs/promises';
+
 export const config = {
   api: {
-    bodyParser: false, // Required for formidable
+    bodyParser: false, // Required for formidable to parse multipart/form-data
   },
 };
 
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const form = new formidable.IncomingForm();
+    const form = new IncomingForm();
 
     form.parse(req, async (err, fields, files) => {
       if (err) {
@@ -38,24 +38,18 @@ export default async function handler(req, res) {
 
       const fileContent = await fs.readFile(file.filepath, 'utf-8');
 
-      let rows;
-      try {
-        ({ rows } = await sql`
-          INSERT INTO files (title, tags, content, original_name, size, upload_date)
-          VALUES (
-            ${title}, 
-            ${JSON.stringify(tags)}, 
-            ${fileContent}, 
-            ${file.originalFilename}, 
-            ${file.size}, 
-            NOW()
-          )
-          RETURNING *
-        `);
-      } catch (dbError) {
-        console.error('Database insert error:', dbError);
-        return res.status(500).json({ error: 'Database insert failed' });
-      }
+      const { rows } = await sql`
+        INSERT INTO files (title, tags, content, original_name, size, upload_date)
+        VALUES (
+          ${title}, 
+          ${JSON.stringify(tags)}, 
+          ${fileContent}, 
+          ${file.originalFilename}, 
+          ${file.size}, 
+          NOW()
+        )
+        RETURNING *
+      `;
 
       const newFile = {
         id: rows[0].id.toString(),
