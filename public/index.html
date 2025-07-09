@@ -7,6 +7,40 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         
+        :root {
+            /* Light mode colors */
+            --bg-primary: #f5f5f5;
+            --bg-secondary: white;
+            --bg-accent: #e6f3ff;
+            --bg-accent-hover: #bee3f8;
+            --text-primary: #333;
+            --text-secondary: #64748b;
+            --text-accent: #3182ce;
+            --border-color: #e2e8f0;
+            --border-accent: #3182ce;
+            --input-bg: #f7fafc;
+            --modal-bg: rgba(0, 0, 0, 0.5);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --shadow-hover: rgba(0, 0, 0, 0.15);
+        }
+
+        [data-theme="dark"] {
+            /* Dark mode colors */
+            --bg-primary: #1a202c;
+            --bg-secondary: #2d3748;
+            --bg-accent: #2a4a6b;
+            --bg-accent-hover: #3c5a7a;
+            --text-primary: #f7fafc;
+            --text-secondary: #a0aec0;
+            --text-accent: #63b3ed;
+            --border-color: #4a5568;
+            --border-accent: #63b3ed;
+            --input-bg: #4a5568;
+            --modal-bg: rgba(0, 0, 0, 0.7);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --shadow-hover: rgba(0, 0, 0, 0.4);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -15,8 +49,9 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         /* Top Navigation Bar */
@@ -24,14 +59,14 @@
             background-color: #3182ce;
             padding: 8px 20px;
             display: flex;
-            justify-content: flex-start;
+            justify-content: space-between;
             align-items: center;
             width: 100%;
             position: fixed;
             top: 0;
             left: 0;
             z-index: 999;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px var(--shadow-color);
         }
 
         .nav-logo-container {
@@ -50,6 +85,28 @@
             font-size: 0.9rem;
             font-weight: 800;
             letter-spacing: 1px;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-toggle svg {
+            width: 18px;
+            height: 18px;
         }
 
         .container {
@@ -602,17 +659,17 @@
         }
 
         .file-info {
-            background-color: white;
+            background-color: var(--bg-secondary);
             padding: 20px;
             border-radius: 15px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--border-color);
             margin-bottom: 20px;
         }
 
         .file-content-container {
-            background-color: white;
+            background-color: var(--bg-secondary);
             border-radius: 15px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--border-color);
             overflow: hidden;
         }
 
@@ -696,6 +753,15 @@
             </svg>
             <div class="nav-brand-text">BRANDRANK.AI</div>
         </div>
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
+            <svg id="lightIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <svg id="darkIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+        </button>
     </div>
 
     <div class="container">
@@ -858,6 +924,37 @@
         let isLoading = false;
         let editingFileId = null;
 
+        // Theme management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeToggleIcon(theme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        }
+
+        function updateThemeToggleIcon(theme) {
+            const lightIcon = document.getElementById('lightIcon');
+            const darkIcon = document.getElementById('darkIcon');
+            
+            if (theme === 'dark') {
+                lightIcon.style.display = 'none';
+                darkIcon.style.display = 'block';
+            } else {
+                lightIcon.style.display = 'block';
+                darkIcon.style.display = 'none';
+            }
+        }
+
         // Format date to EST timezone
         function formatDateEST(dateString) {
             if (!dateString) return 'Unknown';
@@ -876,6 +973,9 @@
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize theme
+            initializeTheme();
+            
             loadFiles();
             
             // Setup upload form
