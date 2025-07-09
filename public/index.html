@@ -205,7 +205,7 @@
             align-items: center;
         }
 
-        .view-button {
+        .view-button, .edit-button {
             background-color: #3182ce;
             color: white;
             border: none;
@@ -217,8 +217,16 @@
             transition: background-color 0.3s ease;
         }
 
+        .edit-button {
+            background-color: #059669;
+        }
+
         .view-button:hover {
             background-color: #2c5282;
+        }
+
+        .edit-button:hover {
+            background-color: #047857;
         }
 
         .delete-button {
@@ -316,7 +324,12 @@
             color: #64748b;
         }
 
-        .card-view-btn {
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .card-view-btn, .card-edit-btn {
             background-color: #3182ce;
             color: white;
             border: none;
@@ -328,8 +341,16 @@
             transition: background-color 0.3s ease;
         }
 
+        .card-edit-btn {
+            background-color: #059669;
+        }
+
         .card-view-btn:hover {
             background-color: #2c5282;
+        }
+
+        .card-edit-btn:hover {
+            background-color: #047857;
         }
 
         .all-uploads-page {
@@ -567,6 +588,13 @@
             width: 100%;
             height: 600px;
             border: none;
+            overflow: auto;
+        }
+
+        /* Horizontal scroll for iframe content */
+        .file-content-container {
+            overflow-x: auto;
+            overflow-y: hidden;
         }
 
         @media (max-width: 768px) {
@@ -599,6 +627,11 @@
 
             .modal-content {
                 padding: 30px 20px;
+            }
+
+            .card-actions {
+                flex-direction: column;
+                gap: 5px;
             }
         }
     </style>
@@ -718,14 +751,46 @@
         </div>
     </div>
 
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">EDIT RESOURCE</h2>
+            
+            <form id="editForm">
+                <div class="form-group">
+                    <label class="form-label">Resource Title *</label>
+                    <input type="text" id="editTitleInput" class="form-input" placeholder="Enter resource title..." required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tags</label>
+                    <div class="tag-input-container">
+                        <input type="text" id="editTagsInput" class="form-input" placeholder="Type to add tags..." oninput="handleEditTagInput()" onfocus="showEditTagDropdown()">
+                        <div id="editTagDropdown" class="tag-dropdown">
+                            <div id="editTagSuggestions"></div>
+                        </div>
+                    </div>
+                    <div id="editSelectedTags" class="selected-tags"></div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="hideEditModal()">Cancel</button>
+                    <button type="submit" id="editSubmitBtn" class="btn-submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Global state
         let files = [];
         let filteredFiles = [];
         let allTags = [];
         let selectedUploadTags = [];
+        let selectedEditTags = [];
         let currentPage = 'main';
         let isLoading = false;
+        let editingFileId = null;
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
@@ -734,14 +799,20 @@
             // Setup upload form
             document.getElementById('uploadForm').addEventListener('submit', handleUpload);
             
+            // Setup edit form
+            document.getElementById('editForm').addEventListener('submit', handleEdit);
+            
             // Close dropdown when clicking outside
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('#tagsInput') && !e.target.closest('#tagDropdown')) {
                     hideTagDropdown();
                 }
+                if (!e.target.closest('#editTagsInput') && !e.target.closest('#editTagDropdown')) {
+                    hideEditTagDropdown();
+                }
             });
 
-            // Handle Enter key in tag input
+            // Handle Enter key in tag inputs
             document.getElementById('tagsInput').addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -749,10 +820,23 @@
                 }
             });
 
-            // Close modal when clicking outside
+            document.getElementById('editTagsInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addEditTagFromInput();
+                }
+            });
+
+            // Close modals when clicking outside
             document.getElementById('uploadModal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     hideUploadModal();
+                }
+            });
+
+            document.getElementById('editModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideEditModal();
                 }
             });
         });
@@ -842,6 +926,58 @@
             }
         }
 
+        // Edit file
+        async function handleEdit(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('editSubmitBtn');
+            const originalText = submitBtn.textContent;
+            
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving...';
+
+                const title = document.getElementById('editTitleInput').value.trim();
+                
+                if (!title) {
+                    alert('Please provide a title');
+                    return;
+                }
+
+                const response = await fetch('/api/edit', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: editingFileId,
+                        title: title,
+                        tags: selectedEditTags
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Edit failed');
+                }
+
+                // Reload files from database
+                await loadFiles();
+                renderFiles();
+                renderAllFiles();
+                hideEditModal();
+                
+                alert('Resource updated successfully!');
+
+            } catch (error) {
+                console.error('Edit error:', error);
+                alert('Failed to update resource: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+
         // Delete file from database
         async function deleteFile(fileId) {
             if (!confirm('Are you sure you want to delete this resource?')) {
@@ -867,6 +1003,19 @@
                 console.error('Error deleting file:', error);
                 alert('Failed to delete file: ' + error.message);
             }
+        }
+
+        // Show edit modal
+        function editFile(fileId) {
+            const file = files.find(f => f.id == fileId);
+            if (!file) return;
+
+            editingFileId = fileId;
+            document.getElementById('editTitleInput').value = file.title;
+            selectedEditTags = [...(file.tags || [])];
+            updateEditSelectedTags();
+            
+            document.getElementById('editModal').classList.add('active');
         }
 
         // UI State Management
@@ -977,6 +1126,95 @@
                 span.innerHTML = `
                     ${escapeHtml(tag)}
                     <button class="remove-tag" onclick="removeUploadTag('${escapeHtml(tag)}')">×</button>
+                `;
+                container.appendChild(span);
+            });
+        }
+
+        // Tag management for edit
+        function handleEditTagInput() {
+            const input = document.getElementById('editTagsInput');
+            const value = input.value.toLowerCase();
+            
+            if (value.trim()) {
+                showEditTagSuggestions(value);
+            } else {
+                hideEditTagDropdown();
+            }
+        }
+
+        function showEditTagSuggestions(filter = '') {
+            const dropdown = document.getElementById('editTagDropdown');
+            const suggestions = document.getElementById('editTagSuggestions');
+            
+            const matching = allTags.filter(tag => 
+                tag.toLowerCase().includes(filter.toLowerCase()) && 
+                !selectedEditTags.includes(tag)
+            );
+            
+            suggestions.innerHTML = '';
+            
+            matching.forEach(tag => {
+                const div = document.createElement('div');
+                div.className = 'tag-suggestion';
+                div.textContent = tag;
+                div.onclick = () => addEditTag(tag);
+                suggestions.appendChild(div);
+            });
+            
+            const input = document.getElementById('editTagsInput').value.trim();
+            if (input && !allTags.includes(input) && !selectedEditTags.includes(input)) {
+                const div = document.createElement('div');
+                div.className = 'tag-suggestion';
+                div.style.fontWeight = 'bold';
+                div.innerHTML = `Create: "${input}"`;
+                div.onclick = () => addEditTag(input);
+                suggestions.appendChild(div);
+            }
+            
+            dropdown.classList.add('active');
+        }
+
+        function showEditTagDropdown() {
+            showEditTagSuggestions();
+        }
+
+        function hideEditTagDropdown() {
+            document.getElementById('editTagDropdown').classList.remove('active');
+        }
+
+        function addEditTagFromInput() {
+            const input = document.getElementById('editTagsInput');
+            const value = input.value.trim();
+            if (value) {
+                addEditTag(value);
+            }
+        }
+
+        function addEditTag(tag) {
+            if (!selectedEditTags.includes(tag)) {
+                selectedEditTags.push(tag);
+                updateEditSelectedTags();
+            }
+            document.getElementById('editTagsInput').value = '';
+            hideEditTagDropdown();
+        }
+
+        function removeEditTag(tag) {
+            selectedEditTags = selectedEditTags.filter(t => t !== tag);
+            updateEditSelectedTags();
+        }
+
+        function updateEditSelectedTags() {
+            const container = document.getElementById('editSelectedTags');
+            container.innerHTML = '';
+            
+            selectedEditTags.forEach(tag => {
+                const span = document.createElement('span');
+                span.className = 'selected-tag';
+                span.innerHTML = `
+                    ${escapeHtml(tag)}
+                    <button class="remove-tag" onclick="removeEditTag('${escapeHtml(tag)}')">×</button>
                 `;
                 container.appendChild(span);
             });
@@ -1108,6 +1346,7 @@
                             <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
                         </svg>
                     </button>
+                    <button class="edit-button" onclick="editFile('${file.id}')">EDIT</button>
                     <button class="view-button" onclick="viewFile('${file.id}')">VIEW</button>
                 </div>
             `;
@@ -1141,7 +1380,10 @@
                 
                 <div class="card-footer">
                     <div class="card-date">${uploadDate}</div>
-                    <button class="card-view-btn" onclick="viewFile('${file.id}')">VIEW</button>
+                    <div class="card-actions">
+                        <button class="card-edit-btn" onclick="editFile('${file.id}')">EDIT</button>
+                        <button class="card-view-btn" onclick="viewFile('${file.id}')">VIEW</button>
+                    </div>
                 </div>
             `;
             
@@ -1228,6 +1470,14 @@
         function hideUploadModal() {
             document.getElementById('uploadModal').classList.remove('active');
             hideTagDropdown();
+        }
+
+        function hideEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            hideEditTagDropdown();
+            editingFileId = null;
+            selectedEditTags = [];
+            updateEditSelectedTags();
         }
     </script>
 </body>
