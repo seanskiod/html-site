@@ -607,55 +607,6 @@
         }
     </style>
 </head>
-    <script>
-  async function uploadResource(event) {
-    event.preventDefault();
-    
-    const form = document.getElementById('uploadForm');
-    const formData = new FormData();
-
-    const title = form.title.value;
-    const tagsInput = form.tags.value.trim();
-    const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()) : [];
-
-    const fileInput = form.file;
-    const file = fileInput.files[0];
-
-    if (!title || !file) {
-      alert('Please provide a title and choose a file.');
-      return;
-    }
-
-    formData.append('title', title);
-    formData.append('tags', JSON.stringify(tags));  // ✅ Important: stringify array
-    formData.append('file', file);
-
-    const uploadingButton = document.getElementById('uploadingBtn');
-    uploadingButton.disabled = true;
-    uploadingButton.textContent = 'Uploading...';
-
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      alert('File uploaded successfully!');
-      window.location.reload();
-    } catch (error) {
-      console.error('Failed to upload resource:', error);
-      alert('Failed to upload resource: ' + error.message);
-    } finally {
-      uploadingButton.disabled = false;
-      uploadingButton.textContent = 'Upload';
-    }
-  }
-</script>
-
 <body>
     <div class="container">
         <!-- Main Page -->
