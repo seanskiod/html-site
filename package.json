@@ -7,10 +7,11 @@
     "build": "echo 'No build step required'"
   },
   "dependencies": {
-    "@vercel/postgres": "0.4.0",
+    "@vercel/postgres": "0.3.6",
     "formidable": "^3.5.0"
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "type": "module"
 }
