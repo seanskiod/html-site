@@ -1,11 +1,24 @@
-import { sql } from '@vercel/postgres';
-
 export default async function handler(request, response) {
   try {
-    // First check if we can import the SQL function
-    const { sql } = await import('@vercel/postgres');
+    // Add debug info
+    console.log('Setup function called');
     
-    // Try to create the table
+    // Check environment variables
+    const dbUrl = process.env.POSTGRES_URL;
+    const dbHost = process.env.POSTGRES_HOST;
+    
+    if (!dbUrl && !dbHost) {
+      return response.status(500).json({ 
+        error: 'Database environment variables not found',
+        available: Object.keys(process.env).filter(key => key.includes('POSTGRES'))
+      });
+    }
+
+    // Try to import and use postgres
+    const { sql } = await import('@vercel/postgres');
+    console.log('Postgres imported successfully');
+
+    // Create table
     const result = await sql`
       CREATE TABLE IF NOT EXISTS files (
         id SERIAL PRIMARY KEY,
@@ -18,10 +31,13 @@ export default async function handler(request, response) {
       )
     `;
     
+    console.log('Table created successfully');
+    
     return response.status(200).json({ 
       message: 'Database table created successfully!',
-      result: result 
+      dbConnected: true
     });
+    
   } catch (error) {
     console.error('Setup error:', error);
     return response.status(500).json({ 
