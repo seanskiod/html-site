@@ -161,16 +161,34 @@
         .brand-title {
             font-size: 6rem;
             font-weight: 900;
-            color: #3182ce;
+            color: var(--text-primary);
             text-align: center;
             margin-bottom: 2px;
             letter-spacing: 4px;
             font-family: 'Inter', sans-serif;
+            background: linear-gradient(45deg, var(--text-accent), var(--text-primary), var(--text-accent));
+            background-size: 300% 300%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: brandGlow 3s ease-in-out infinite;
+            position: relative;
+        }
+
+        @keyframes brandGlow {
+            0%, 100% {
+                background-position: 0% 50%;
+                filter: drop-shadow(0 0 10px var(--text-accent));
+            }
+            50% {
+                background-position: 100% 50%;
+                filter: drop-shadow(0 0 20px var(--text-accent));
+            }
         }
 
         .brand-subtitle {
             font-size: 1.5rem;
-            color: #3182ce;
+            color: var(--text-primary);
             text-align: center;
             margin-bottom: 40px;
             font-weight: 300;
@@ -206,8 +224,8 @@
         .upload-button {
             display: block;
             margin: 20px auto;
-            background-color: #3182ce;
-            color: white;
+            background-color: var(--text-accent);
+            color: var(--bg-secondary);
             border: none;
             padding: 12px 30px;
             border-radius: 12px;
@@ -239,8 +257,8 @@
         .view-all-button {
             display: block;
             margin: 20px auto;
-            background-color: #3182ce;
-            color: white;
+            background-color: var(--text-accent);
+            color: var(--bg-secondary);
             border: none;
             padding: 10px 25px;
             border-radius: 10px;
@@ -1051,8 +1069,8 @@
             const duration = Math.random() * 7 + 8;
             column.style.animationDuration = duration + 's';
             
-            // Random delay before starting
-            const delay = Math.random() * 5;
+            // Quicker start - reduced delay
+            const delay = Math.random() * 1;
             column.style.animationDelay = delay + 's';
             
             // Generate longer random code text
@@ -1068,7 +1086,7 @@
             // Restart animation when it completes
             column.addEventListener('animationend', function() {
                 const newDuration = Math.random() * 7 + 8;
-                const newDelay = Math.random() * 3;
+                const newDelay = Math.random() * 0.5; // Even quicker restart
                 column.style.animationDuration = newDuration + 's';
                 column.style.animationDelay = newDelay + 's';
                 
