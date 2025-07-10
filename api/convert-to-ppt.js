@@ -1,11 +1,13 @@
 import PptxGenJS from 'pptxgenjs';
-import { JSDOM } from 'jsdom';
+import puppeteer from 'puppeteer';
 import { sql } from '@vercel/postgres';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  let browser;
 
   try {
     const { fileId } = req.body;
@@ -20,8 +22,18 @@ export default async function handler(req, res) {
     }
     
     const file = rows[0];
-    const dom = new JSDOM(file.content);
-    const document = dom.window.document;
+    
+    // Launch browser
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1200, height: 800 });
+    
+    // Load the HTML content
+    await page.setContent(file.content, { waitUntil: 'networkidle0' });
     
     // Create PowerPoint presentation
     const pres = new PptxGenJS();
@@ -40,37 +52,60 @@ export default async function handler(req, res) {
       align: 'center'
     });
     
-    // Process HTML content
-    const slides = parseHTMLToSlides(document);
+    // Find all headings to create sections
+    const headings = await page.$$eval('h1, h2, h3, h4, h5, h6', elements => 
+      elements.map(el => ({
+        text: el.textContent.trim(),
+        tagName: el.tagName,
+        offsetTop: el.offsetTop
+      }))
+    );
     
-    // Create slides
-    slides.forEach(slideData => {
+    if (headings.length === 0) {
+      // No headings - screenshot entire content
+      const screenshot = await page.screenshot({
+        type: 'png',
+        encoding: 'base64',
+        fullPage: true
+      });
+      
       const slide = pres.addSlide();
-      
-      // Add title
-      if (slideData.title) {
-        slide.addText(slideData.title, {
-          x: 0.5, y: 0.5, w: 9, h: 1,
-          fontSize: 28, bold: true, color: '3182ce'
-        });
-      }
-      
-      // Add content
-      if (slideData.content.length > 0) {
-        let yPos = slideData.title ? 1.5 : 0.5;
+      slide.addText('Content', {
+        x: 0.5, y: 0.2, w: 9, h: 0.8,
+        fontSize: 24, bold: true, color: '3182ce'
+      });
+      slide.addImage({
+        data: `data:image/png;base64,${screenshot}`,
+        x: 0.5, y: 1.2, w: 9, h: 5.3
+      });
+    } else {
+      // Process each section
+      for (let i = 0; i < headings.length; i++) {
+        const currentHeading = headings[i];
+        const nextHeading = headings[i + 1];
         
-        slideData.content.forEach(item => {
-          if (item.type === 'text') {
-            slide.addText(item.text, {
-              x: 0.5, y: yPos, w: 9, h: 'auto',
-              fontSize: 16, color: '333333',
-              bullet: item.isList
-            });
-            yPos += item.isList ? 0.3 : 0.5;
-          }
+        // Calculate section bounds
+        const startY = currentHeading.offsetTop - 20; // Include some padding
+        const endY = nextHeading ? nextHeading.offsetTop - 20 : null;
+        
+        // Take screenshot of this section
+        const sectionScreenshot = await takeScreenshotOfSection(page, startY, endY);
+        
+        // Create slide
+        const slide = pres.addSlide();
+        slide.addText(currentHeading.text, {
+          x: 0.5, y: 0.2, w: 9, h: 0.8,
+          fontSize: 24, bold: true, color: '3182ce'
         });
+        
+        if (sectionScreenshot) {
+          slide.addImage({
+            data: `data:image/png;base64,${sectionScreenshot}`,
+            x: 0.5, y: 1.2, w: 9, h: 5.3
+          });
+        }
       }
-    });
+    }
     
     // Generate PowerPoint file
     const pptxData = await pres.write('base64');
@@ -78,105 +113,49 @@ export default async function handler(req, res) {
     // Set headers for file download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
     res.setHeader('Content-Disposition', `attachment; filename="${file.title.replace(/[^a-zA-Z0-9]/g, '_')}.pptx"`);
-    res.setHeader('Content-Length', Buffer.byteLength(pptxData, 'base64'));
     
     // Send file
     res.send(Buffer.from(pptxData, 'base64'));
     
   } catch (error) {
     console.error('PowerPoint conversion error:', error);
-    res.status(500).json({ error: 'Failed to convert to PowerPoint' });
-  }
-}
-
-function parseHTMLToSlides(document) {
-  const slides = [];
-  const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-  
-  if (headings.length === 0) {
-    // No headings - create one slide with all content
-    const content = extractContent(document.body);
-    slides.push({
-      title: 'Content',
-      content: content
-    });
-  } else {
-    // Process each heading as a new slide
-    headings.forEach((heading, index) => {
-      const title = heading.textContent.trim();
-      
-      // Get content between this heading and the next
-      const nextHeading = headings[index + 1];
-      const content = extractContentBetween(heading, nextHeading);
-      
-      slides.push({
-        title: title,
-        content: content
-      });
-    });
-  }
-  
-  return slides;
-}
-
-function extractContentBetween(startElement, endElement) {
-  const content = [];
-  let currentElement = startElement.nextElementSibling;
-  
-  while (currentElement && currentElement !== endElement) {
-    if (currentElement.tagName === 'P') {
-      const text = currentElement.textContent.trim();
-      if (text) {
-        content.push({
-          type: 'text',
-          text: text,
-          isList: false
-        });
-      }
-    } else if (currentElement.tagName === 'UL' || currentElement.tagName === 'OL') {
-      const listItems = currentElement.querySelectorAll('li');
-      listItems.forEach(li => {
-        const text = li.textContent.trim();
-        if (text) {
-          content.push({
-            type: 'text',
-            text: text,
-            isList: true
-          });
-        }
-      });
-    } else if (currentElement.tagName === 'DIV') {
-      const text = currentElement.textContent.trim();
-      if (text) {
-        content.push({
-          type: 'text',
-          text: text,
-          isList: false
-        });
-      }
+    res.status(500).json({ error: 'Failed to convert to PowerPoint: ' + error.message });
+  } finally {
+    if (browser) {
+      await browser.close();
     }
-    
-    currentElement = currentElement.nextElementSibling;
   }
-  
-  return content;
 }
 
-function extractContent(element) {
-  const content = [];
-  const textContent = element.textContent.trim();
-  
-  if (textContent) {
-    // Split into paragraphs
-    const paragraphs = textContent.split('\n').filter(p => p.trim());
-    paragraphs.forEach(paragraph => {
-      content.push({
-        type: 'text',
-        text: paragraph.trim(),
-        isList: false
-      });
+async function takeScreenshotOfSection(page, startY, endY) {
+  try {
+    // Scroll to the section
+    await page.evaluate((y) => {
+      window.scrollTo(0, y);
+    }, startY);
+    
+    // Wait a moment for rendering
+    await page.waitForTimeout(500);
+    
+    // Calculate screenshot area
+    const viewport = await page.viewport();
+    const clip = {
+      x: 0,
+      y: 0,
+      width: viewport.width,
+      height: endY ? Math.min(endY - startY + 40, viewport.height) : viewport.height
+    };
+    
+    // Take screenshot
+    const screenshot = await page.screenshot({
+      type: 'png',
+      encoding: 'base64',
+      clip: clip
     });
+    
+    return screenshot;
+  } catch (error) {
+    console.error('Screenshot error:', error);
+    return null;
   }
-  
-  return content;
 }
