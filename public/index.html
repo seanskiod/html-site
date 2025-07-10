@@ -1795,15 +1795,102 @@
             
             try {
                 convertBtn.disabled = true;
-                convertBtn.textContent = '🔄 Converting...';
+                convertBtn.textContent = '📸 Capturing screenshots...';
                 
+                // Load html2canvas library
+                if (!window.html2canvas) {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                    document.head.appendChild(script);
+                    
+                    await new Promise((resolve, reject) => {
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        setTimeout(reject, 10000); // 10s timeout
+                    });
+                }
+                
+                // Get the iframe content
+                const iframe = document.getElementById('fileContent');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                convertBtn.textContent = '🔄 Converting to PowerPoint...';
+                
+                // Find sections (headings or just take full page)
+                const headings = Array.from(iframeDoc.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+                const screenshots = [];
+                
+                if (headings.length === 0) {
+                    // No headings - capture entire page
+                    const canvas = await html2canvas(iframeDoc.body, {
+                        width: 1200,
+                        height: 800,
+                        scale: 0.8,
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#ffffff'
+                    });
+                    
+                    screenshots.push({
+                        title: null,
+                        image: canvas.toDataURL('image/png')
+                    });
+                } else {
+                    // Capture sections based on headings
+                    for (let i = 0; i < headings.length; i++) {
+                        const heading = headings[i];
+                        const nextHeading = headings[i + 1];
+                        
+                        // Create a temporary container for this section
+                        const sectionDiv = iframeDoc.createElement('div');
+                        sectionDiv.style.padding = '20px';
+                        sectionDiv.style.backgroundColor = '#ffffff';
+                        sectionDiv.style.width = '1200px';
+                        
+                        // Clone content from current heading to next heading
+                        let currentElement = heading;
+                        while (currentElement && currentElement !== nextHeading) {
+                            sectionDiv.appendChild(currentElement.cloneNode(true));
+                            currentElement = currentElement.nextElementSibling;
+                        }
+                        
+                        // Temporarily add to document for screenshot
+                        iframeDoc.body.appendChild(sectionDiv);
+                        
+                        // Take screenshot
+                        const canvas = await html2canvas(sectionDiv, {
+                            width: 1200,
+                            height: 800,
+                            scale: 0.8,
+                            useCORS: true,
+                            allowTaint: true,
+                            backgroundColor: '#ffffff'
+                        });
+                        
+                        screenshots.push({
+                            title: heading.textContent.trim(),
+                            image: canvas.toDataURL('image/png')
+                        });
+                        
+                        // Remove temporary element
+                        iframeDoc.body.removeChild(sectionDiv);
+                        
+                        // Small delay between screenshots
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                }
+                
+                convertBtn.textContent = '📋 Generating PowerPoint...';
+                
+                // Send to API
                 const response = await fetch('/api/convert-to-ppt', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        fileId: window.currentFileId
+                        fileId: window.currentFileId,
+                        screenshots: screenshots
                     })
                 });
                 
@@ -1812,22 +1899,14 @@
                     throw new Error(errorData.error || 'Conversion failed');
                 }
                 
-                // Get the blob data
+                // Download the file
                 const blob = await response.blob();
-                
-                // Create download link
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
+                const file = files.find(f => f.id == window.currentFileId);
+                
                 a.href = url;
-                
-                // Get filename from response headers or use default
-                const disposition = response.headers.get('Content-Disposition');
-                let filename = 'presentation.pptx';
-                if (disposition && disposition.includes('filename=')) {
-                    filename = disposition.split('filename=')[1].replace(/"/g, '');
-                }
-                
-                a.download = filename;
+                a.download = `${file.title.replace(/[^a-zA-Z0-9]/g, '_')}.pptx`;
                 document.body.appendChild(a);
                 a.click();
                 
