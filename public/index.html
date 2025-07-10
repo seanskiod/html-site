@@ -741,6 +741,16 @@
                 width: 16px;
                 height: 16px;
             }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .upload-button {
+                padding: 12px 30px;
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
@@ -774,9 +784,10 @@
                 <input type="text" id="searchInput" class="search-input" placeholder="Search by name or tags..." oninput="filterFiles()">
             </div>
 
-            <button class="upload-button" onclick="showUploadModal()">Upload New Resource</button>
-            
-            <h4 class="section-title">LATEST UPLOADS:</h4>
+            <div class="action-buttons">
+                <button class="upload-button" onclick="showUploadModal()">Upload New Resource</button>
+                <button id="viewAllButton" class="view-all-button" onclick="showAllUploadsPage()">View All Resources</button>
+            </div>
             
             <!-- Files Container -->
             <div id="loadingState" class="loading-state">
@@ -796,10 +807,6 @@
             <div id="noResults" class="no-results hidden">
                 No resources match your search criteria
             </div>
-            
-            <div id="uploadsList" class="uploads-list"></div>
-            
-            <button id="viewAllButton" class="view-all-button hidden" onclick="showAllUploadsPage()">View All</button>
         </div>
 
         <!-- All Uploads Page -->
@@ -1092,7 +1099,6 @@
 
                 // Reload files from database
                 await loadFiles();
-                renderFiles();
                 renderAllFiles();
                 hideUploadModal();
                 
@@ -1149,7 +1155,6 @@
 
                 // Reload files from database
                 await loadFiles();
-                renderFiles();
                 renderAllFiles();
                 hideEditModal();
                 
@@ -1182,7 +1187,6 @@
                 
                 // Reload files from database
                 await loadFiles();
-                renderFiles();
                 renderAllFiles();
                 
             } catch (error) {
@@ -1210,8 +1214,6 @@
             document.getElementById('errorState').classList.add('hidden');
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('noResults').classList.add('hidden');
-            document.getElementById('uploadsList').innerHTML = '';
-            document.getElementById('viewAllButton').classList.add('hidden');
         }
 
         function showErrorState() {
@@ -1219,8 +1221,6 @@
             document.getElementById('errorState').classList.remove('hidden');
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('noResults').classList.add('hidden');
-            document.getElementById('uploadsList').innerHTML = '';
-            document.getElementById('viewAllButton').classList.add('hidden');
         }
 
         function hideLoadingState() {
@@ -1411,7 +1411,7 @@
             allTags = [...new Set(files.flatMap(file => file.tags || []))];
         }
 
-        // Filter files
+        // Filter files (search functionality only)
         function filterFiles() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             
@@ -1441,20 +1441,16 @@
             renderAllFiles();
         }
 
-        // Render files
+        // Render files (simplified - no latest uploads display)
         function renderFiles() {
             const emptyState = document.getElementById('emptyState');
-            const uploadsList = document.getElementById('uploadsList');
             const noResults = document.getElementById('noResults');
-            const viewAllButton = document.getElementById('viewAllButton');
             
             if (isLoading) return;
             
             // Hide all states
             emptyState.classList.add('hidden');
-            uploadsList.innerHTML = '';
             noResults.classList.add('hidden');
-            viewAllButton.classList.add('hidden');
             
             if (files.length === 0) {
                 emptyState.classList.remove('hidden');
@@ -1466,17 +1462,7 @@
                 return;
             }
             
-            // Show only first 5 files on main page
-            const displayFiles = filteredFiles.slice(0, 5);
-            displayFiles.forEach(file => {
-                const item = createFileItem(file);
-                uploadsList.appendChild(item);
-            });
-            
-            // Show "View All" button if there are more than 5 files
-            if (files.length > 5) {
-                viewAllButton.classList.remove('hidden');
-            }
+            // Main page doesn't show uploads anymore - just search functionality
         }
 
         // Render all files for the all uploads page
