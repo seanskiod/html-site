@@ -703,6 +703,29 @@
             background-color: #2c5282;
         }
 
+        .convert-button {
+            background-color: #059669;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .convert-button:hover {
+            background-color: #047857;
+            transform: translateY(-1px);
+        }
+
+        .convert-button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .file-info {
             background-color: var(--bg-secondary);
             padding: 20px;
@@ -896,6 +919,11 @@
                 <h2 id="fileTitle" style="color: #3182ce; margin-bottom: 15px; font-size: 1.5rem;"></h2>
                 <div id="fileTags" style="margin-bottom: 10px;"></div>
                 <div id="fileDate" class="upload-date"></div>
+                <div style="margin-top: 15px;">
+                    <button id="convertToPptBtn" class="convert-button" onclick="convertToPowerPoint()">
+                        📊 Convert to PowerPoint
+                    </button>
+                </div>
             </div>
 
             <div class="file-content-container">
@@ -985,6 +1013,7 @@
         let currentPage = 'main';
         let isLoading = false;
         let editingFileId = null;
+        let currentFileId = null; // For PowerPoint conversion
 
         // Theme management
         function initializeTheme() {
@@ -1726,6 +1755,9 @@
             const file = files.find(f => f.id == fileId);
             if (!file) return;
             
+            // Store current file ID for PowerPoint conversion
+            window.currentFileId = fileId;
+            
             // Update file viewer
             document.getElementById('fileTitle').textContent = file.title;
             document.getElementById('fileDate').textContent = 
@@ -1749,6 +1781,69 @@
             
             // Show file viewer page
             showFileViewerPage();
+        }
+
+        // Convert to PowerPoint
+        async function convertToPowerPoint() {
+            const convertBtn = document.getElementById('convertToPptBtn');
+            const originalText = convertBtn.textContent;
+            
+            if (!window.currentFileId) {
+                alert('No file selected for conversion');
+                return;
+            }
+            
+            try {
+                convertBtn.disabled = true;
+                convertBtn.textContent = '🔄 Converting...';
+                
+                const response = await fetch('/api/convert-to-ppt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        fileId: window.currentFileId
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Conversion failed');
+                }
+                
+                // Get the blob data
+                const blob = await response.blob();
+                
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                
+                // Get filename from response headers or use default
+                const disposition = response.headers.get('Content-Disposition');
+                let filename = 'presentation.pptx';
+                if (disposition && disposition.includes('filename=')) {
+                    filename = disposition.split('filename=')[1].replace(/"/g, '');
+                }
+                
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                
+                // Cleanup
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                alert('PowerPoint file downloaded successfully!');
+                
+            } catch (error) {
+                console.error('PowerPoint conversion error:', error);
+                alert('Failed to convert to PowerPoint: ' + error.message);
+            } finally {
+                convertBtn.disabled = false;
+                convertBtn.textContent = originalText;
+            }
         }
 
         // Go back to previous page
