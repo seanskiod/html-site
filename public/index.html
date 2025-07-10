@@ -7,6 +7,13 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         
+        @font-face {
+            font-family: 'Mont-Heavy';
+            src: url('/fonts/Mont-HeavyDEMO.otf') format('opentype');
+            font-weight: 900;
+            font-display: swap;
+        }
+        
         :root {
             /* Light mode colors */
             --bg-primary: #f5f5f5;
@@ -161,29 +168,11 @@
         .brand-title {
             font-size: 6rem;
             font-weight: 900;
-            color: var(--text-primary);
+            color: var(--text-accent);
             text-align: center;
             margin-bottom: 2px;
             letter-spacing: 4px;
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(45deg, var(--text-accent), var(--text-primary), var(--text-accent));
-            background-size: 300% 300%;
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: brandGlow 3s ease-in-out infinite;
-            position: relative;
-        }
-
-        @keyframes brandGlow {
-            0%, 100% {
-                background-position: 0% 50%;
-                filter: drop-shadow(0 0 10px var(--text-accent));
-            }
-            50% {
-                background-position: 100% 50%;
-                filter: drop-shadow(0 0 20px var(--text-accent));
-            }
+            font-family: 'Mont-Heavy', 'Inter', sans-serif;
         }
 
         .search-container {
@@ -771,6 +760,16 @@
                 font-size: 1.5rem;
             }
 
+            /* Hide BRANDRANK text on view all page only on mobile */
+            #allUploadsPage .brand-title {
+                display: none;
+            }
+
+            /* Adjust spacing when title is hidden */
+            #allUploadsPage .search-container {
+                margin-top: 20px;
+            }
+
             .upload-item {
                 flex-direction: column;
                 align-items: flex-start;
@@ -786,7 +785,7 @@
             }
 
             .nav-brand-text {
-                font-size: 0.7rem;
+                font-size: 0.65rem;
             }
 
             .nav-logo {
