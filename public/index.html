@@ -807,6 +807,12 @@
             <div id="noResults" class="no-results hidden">
                 No resources match your search criteria
             </div>
+
+            <!-- Search Results Container -->
+            <div id="searchResults" class="search-results-container hidden">
+                <h4 class="section-title" id="searchResultsTitle">Search Results:</h4>
+                <div id="searchResultsList" class="uploads-list"></div>
+            </div>
         </div>
 
         <!-- All Uploads Page -->
@@ -1214,6 +1220,7 @@
             document.getElementById('errorState').classList.add('hidden');
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('noResults').classList.add('hidden');
+            document.getElementById('searchResults').classList.add('hidden');
         }
 
         function showErrorState() {
@@ -1221,6 +1228,7 @@
             document.getElementById('errorState').classList.remove('hidden');
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('noResults').classList.add('hidden');
+            document.getElementById('searchResults').classList.add('hidden');
         }
 
         function hideLoadingState() {
@@ -1441,28 +1449,44 @@
             renderAllFiles();
         }
 
-        // Render files (simplified - no latest uploads display)
+        // Render files (shows search results when searching)
         function renderFiles() {
             const emptyState = document.getElementById('emptyState');
             const noResults = document.getElementById('noResults');
+            const searchResults = document.getElementById('searchResults');
+            const searchResultsList = document.getElementById('searchResultsList');
+            const searchResultsTitle = document.getElementById('searchResultsTitle');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             
             if (isLoading) return;
             
-            // Hide all states
+            // Hide all states initially
             emptyState.classList.add('hidden');
             noResults.classList.add('hidden');
+            searchResults.classList.add('hidden');
+            searchResultsList.innerHTML = '';
             
             if (files.length === 0) {
                 emptyState.classList.remove('hidden');
                 return;
             }
             
-            if (filteredFiles.length === 0) {
-                noResults.classList.remove('hidden');
-                return;
+            // Only show search results if there's a search term
+            if (searchTerm) {
+                if (filteredFiles.length === 0) {
+                    noResults.classList.remove('hidden');
+                    return;
+                }
+                
+                // Show search results
+                searchResults.classList.remove('hidden');
+                searchResultsTitle.textContent = `Search Results (${filteredFiles.length}):`;
+                
+                filteredFiles.forEach(file => {
+                    const item = createFileItem(file);
+                    searchResultsList.appendChild(item);
+                });
             }
-            
-            // Main page doesn't show uploads anymore - just search functionality
         }
 
         // Render all files for the all uploads page
