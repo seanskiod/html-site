@@ -76,10 +76,12 @@
             top: -100%;
             color: var(--matrix-color);
             font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.2;
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.1;
             white-space: pre;
             animation: matrix-fall linear infinite;
+            text-shadow: 0 0 5px currentColor;
         }
 
         @keyframes matrix-fall {
@@ -1016,7 +1018,7 @@
             const characters = '01';
             
             const screenWidth = window.innerWidth;
-            const columnWidth = 20;
+            const columnWidth = 25; // Increased width for larger font
             const numColumns = Math.floor(screenWidth / columnWidth);
             
             for (let i = 0; i < numColumns; i++) {
@@ -1043,17 +1045,17 @@
             column.className = 'matrix-column';
             column.style.left = leftPosition + 'px';
             
-            // Random animation duration between 3-8 seconds
-            const duration = Math.random() * 5 + 3;
+            // Slower animation duration between 8-15 seconds for better visibility
+            const duration = Math.random() * 7 + 8;
             column.style.animationDuration = duration + 's';
             
             // Random delay before starting
-            const delay = Math.random() * 3;
+            const delay = Math.random() * 5;
             column.style.animationDelay = delay + 's';
             
-            // Generate random code text
+            // Generate longer random code text
             let text = '';
-            const textLength = Math.random() * 20 + 10;
+            const textLength = Math.random() * 30 + 25; // Much longer columns (25-55 characters)
             for (let i = 0; i < textLength; i++) {
                 text += characters.charAt(Math.floor(Math.random() * characters.length)) + '\n';
             }
@@ -1063,14 +1065,14 @@
             
             // Restart animation when it completes
             column.addEventListener('animationend', function() {
-                const newDuration = Math.random() * 5 + 3;
-                const newDelay = Math.random() * 2;
+                const newDuration = Math.random() * 7 + 8;
+                const newDelay = Math.random() * 3;
                 column.style.animationDuration = newDuration + 's';
                 column.style.animationDelay = newDelay + 's';
                 
-                // Generate new random text
+                // Generate new longer random text
                 let newText = '';
-                const newTextLength = Math.random() * 20 + 10;
+                const newTextLength = Math.random() * 30 + 25;
                 for (let i = 0; i < newTextLength; i++) {
                     newText += characters.charAt(Math.floor(Math.random() * characters.length)) + '\n';
                 }
