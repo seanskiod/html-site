@@ -22,6 +22,7 @@
             --modal-bg: rgba(0, 0, 0, 0.5);
             --shadow-color: rgba(0, 0, 0, 0.1);
             --shadow-hover: rgba(0, 0, 0, 0.15);
+            --matrix-color: rgb(74, 85, 104);
         }
 
         [data-theme="dark"] {
@@ -39,6 +40,7 @@
             --modal-bg: rgba(0, 0, 0, 0.7);
             --shadow-color: rgba(0, 0, 0, 0.3);
             --shadow-hover: rgba(0, 0, 0, 0.4);
+            --matrix-color: #3182ce;
         }
 
         * {
@@ -52,6 +54,43 @@
             background-color: var(--bg-primary);
             color: var(--text-primary);
             transition: background-color 0.3s ease, color 0.3s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Matrix Background */
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.4;
+            overflow: hidden;
+        }
+
+        .matrix-column {
+            position: absolute;
+            top: -100%;
+            color: var(--matrix-color);
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.2;
+            white-space: pre;
+            animation: matrix-fall linear infinite;
+        }
+
+        @keyframes matrix-fall {
+            0% {
+                transform: translateY(-100vh);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
         }
 
         /* Top Navigation Bar */
@@ -758,6 +797,9 @@
     </style>
 </head>
 <body>
+    <!-- Matrix Background -->
+    <div class="matrix-bg" id="matrixBg"></div>
+
     <!-- Top Navigation Bar -->
     <div class="top-nav">
         <div class="nav-logo-container">
@@ -827,8 +869,6 @@
             <div class="search-container">
                 <input type="text" id="allSearchInput" class="search-input" placeholder="Search by name or tags..." oninput="filterAllFiles()">
             </div>
-            
-            <h4 class="section-title">ALL UPLOADS:</h4>
             
             <div id="allEmptyState" class="empty-state hidden">
                 <div>No resources uploaded yet</div>
@@ -970,6 +1010,74 @@
             }
         }
 
+        // Matrix Background Effect
+        function initMatrixBackground() {
+            const matrixBg = document.getElementById('matrixBg');
+            const characters = '01アカサタナハマヤラワンABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            
+            const screenWidth = window.innerWidth;
+            const columnWidth = 20;
+            const numColumns = Math.floor(screenWidth / columnWidth);
+            
+            for (let i = 0; i < numColumns; i++) {
+                createMatrixColumn(matrixBg, characters, i * columnWidth);
+            }
+            
+            // Recreate columns on window resize
+            window.addEventListener('resize', function() {
+                const newScreenWidth = window.innerWidth;
+                const newNumColumns = Math.floor(newScreenWidth / columnWidth);
+                const currentColumns = matrixBg.children.length;
+                
+                if (newNumColumns !== currentColumns) {
+                    matrixBg.innerHTML = '';
+                    for (let i = 0; i < newNumColumns; i++) {
+                        createMatrixColumn(matrixBg, characters, i * columnWidth);
+                    }
+                }
+            });
+        }
+
+        function createMatrixColumn(container, characters, leftPosition) {
+            const column = document.createElement('div');
+            column.className = 'matrix-column';
+            column.style.left = leftPosition + 'px';
+            
+            // Random animation duration between 3-8 seconds
+            const duration = Math.random() * 5 + 3;
+            column.style.animationDuration = duration + 's';
+            
+            // Random delay before starting
+            const delay = Math.random() * 3;
+            column.style.animationDelay = delay + 's';
+            
+            // Generate random code text
+            let text = '';
+            const textLength = Math.random() * 20 + 10;
+            for (let i = 0; i < textLength; i++) {
+                text += characters.charAt(Math.floor(Math.random() * characters.length)) + '\n';
+            }
+            column.textContent = text;
+            
+            container.appendChild(column);
+            
+            // Restart animation when it completes
+            column.addEventListener('animationend', function() {
+                const newDuration = Math.random() * 5 + 3;
+                const newDelay = Math.random() * 2;
+                column.style.animationDuration = newDuration + 's';
+                column.style.animationDelay = newDelay + 's';
+                
+                // Generate new random text
+                let newText = '';
+                const newTextLength = Math.random() * 20 + 10;
+                for (let i = 0; i < newTextLength; i++) {
+                    newText += characters.charAt(Math.floor(Math.random() * characters.length)) + '\n';
+                }
+                column.textContent = newText;
+            });
+        }
+
         // Format date to EST timezone
         function formatDateEST(dateString) {
             if (!dateString) return 'Unknown';
@@ -990,6 +1098,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize theme
             initializeTheme();
+            
+            // Initialize Matrix background
+            initMatrixBackground();
             
             loadFiles();
             
