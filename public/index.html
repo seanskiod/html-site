@@ -810,7 +810,6 @@
 
             <!-- Search Results Container -->
             <div id="searchResults" class="search-results-container hidden">
-                <h4 class="section-title" id="searchResultsTitle">Search Results:</h4>
                 <div id="searchResultsList" class="uploads-list"></div>
             </div>
         </div>
@@ -1455,7 +1454,6 @@
             const noResults = document.getElementById('noResults');
             const searchResults = document.getElementById('searchResults');
             const searchResultsList = document.getElementById('searchResultsList');
-            const searchResultsTitle = document.getElementById('searchResultsTitle');
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             
             if (isLoading) return;
@@ -1478,9 +1476,8 @@
                     return;
                 }
                 
-                // Show search results
+                // Show search results without title
                 searchResults.classList.remove('hidden');
-                searchResultsTitle.textContent = `Search Results (${filteredFiles.length}):`;
                 
                 filteredFiles.forEach(file => {
                     const item = createFileItem(file);
@@ -1685,6 +1682,3 @@
             selectedEditTags = [];
             updateEditSelectedTags();
         }
-    </script>
-</body>
-</html>
